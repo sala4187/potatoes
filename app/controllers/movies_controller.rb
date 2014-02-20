@@ -7,27 +7,34 @@ class MoviesController < ApplicationController
   end
 
   def index
-	if params[:sort] == "title"
-	@title_header="hilite"
-	@date_header=nil
-	
-	elsif params[:sort] == "release_date"
-	@title_header=nil
-	@date_header = "hilite"
+  
+  sort = params[:sort] || session[:sort]
 
-	else
-	@title_header = nil
-	@date_header = nil
-    	end
-	
-	if params[:ratings]
-	@ratings = params[:ratings].keys
-	else 
-	@ratings = Movie.all_ratings
-	end	
+  case sort
+  when "title"
+  @title_header="hilite"
+  @date_header=nil
 
-	@movies = Movie.order(params[:sort]).find_all_by_rating(@ratings)
-	@all_ratings = Movie.all_ratings
+  when "release_date"
+  @title_header=nil
+  @date_header = "hilite"
+  end
+
+  @ratings = params[:ratings] || session[:ratings] || {}
+
+  if params[:sort] != session[:sort]
+    session[:sort] = sort
+    redirect_to :sort => sort, :ratings => @ratings and return
+  end
+
+  if params[:ratings] != session[:ratings] and @ratings != {}
+    session[:sort] = sort
+    session[:ratings] = @ratings
+    redirect_to :sort => sort, :ratings => @ratings and return
+  end
+
+  @movies = Movie.order(params[:sort]).find_all_by_rating(@ratings.keys)
+  @all_ratings = Movie.all_ratings
   end
 
   def new
@@ -57,6 +64,6 @@ class MoviesController < ApplicationController
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
   end
-	
+
 
 end
