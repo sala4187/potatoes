@@ -33,6 +33,12 @@ class MoviesController < ApplicationController
     redirect_to :sort => sort, :ratings => @ratings and return
   end
 
+  if @ratings == {}
+    Movie.all_ratings.each_with_index { |rating, index|
+      @ratings[rating] = index
+    }
+  end
+
   @movies = Movie.order(params[:sort]).find_all_by_rating(@ratings.keys)
   @all_ratings = Movie.all_ratings
   end
